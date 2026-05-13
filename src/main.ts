@@ -1,4 +1,4 @@
-// Company: Leader Electronics of Europe 2026
+// Company: Leader Electronics of Europe
 // License: MIT
 // Created by: Ed Smith 
 // Date: 13/05/2026
