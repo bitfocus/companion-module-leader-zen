@@ -3,13 +3,13 @@
     "name": "leader-ZEN",
     "shortname": "ZEN",
     "description": "leader-ZEN",
-    "version": "0.2.6",
+    "version": "1.0.0",
     "license": "MIT",
-    "repository": "",
+    "repository": "https://github.com/leader-europe/companion-module-leader-zen",
     "bugs": "",
     "maintainers": [{
-            "name": "ed",
-            "github": ""
+            "name": "ed smith",
+            "github": "https://github.com/leader-europe"
         }
     ],
     "legacyIds": [],
