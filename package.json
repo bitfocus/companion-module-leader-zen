@@ -1,6 +1,6 @@
 {
-    "name": "leader-LV",
-    "version": "0.2.6",
+    "name": "leader-ZEN",
+    "version": "1.0.0",
     "main": "dist/index.js",
     "type": "module",
     "scripts": {
@@ -16,7 +16,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/leader-europe/companion-module-leader-zen"
     },
     "engines": {
         "node": "^22.20",
