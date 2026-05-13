@@ -1,6 +1,10 @@
-// This module is BETA and not to be distributed outside of Leader.
-// Created by: Ed Smith ed.smith@leadereurope.com
-// Date: 26/03/2026
+// Company: Leader Electronics of Europe 2026
+// License: MIT
+// Created by: Ed Smith 
+// Date: 13/05/2026
+// Load user presets on Leader ZEN waveform monitor using companion/ streamdeck buttons. 
+// Requires Telnet to be enabled on Leader ZEN device and to be connected to same network as Companion
+// 60 user preset buttons are automatically genereated when module has connected 
 
 import { type SomeCompanionConfigField } from '@companion-module/base'
 
