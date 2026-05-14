@@ -23,10 +23,11 @@ The module allows Companion users to:
 - User guide: https://companion.free/user-guide/beta/
 - github: https://github.com/bitfocus/companion
 
-- Download this plugin repositry to the companion development folder (dist folder contains last built package and is not required)
+- Download this plugin repositry to the companion development folder 
 - Open command line on companion development folder with admin privilages
 - > `npm install`
 - > `corepack enable`
+- > `yarn install`
 - > `yarn build` (or yarn / yarn dev from then on)
 - Dist directory is genereated and yarn builds the project containing the plugin files for companion
 - Companion will then auto load the plugin ready for you to test and use if dev mode is enabled
