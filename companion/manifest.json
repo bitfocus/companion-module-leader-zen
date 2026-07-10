@@ -1,11 +1,11 @@
 {
-    "id": "leader-zen",
-    "name": "leader-zen",
+    "id": "leader-zen-presets",
+    "name": "leader-zen-presets",
     "shortname": "zen",
-    "description": "leader-zen",
+    "description": "leader-zen-presets",
     "version": "1.0.0",
     "license": "MIT",
-    "repository": "https://github.com/leader-europe/companion-module-leader-zen",
+    "repository": "https://github.com/leader-europe/companion-module-leader-zen-presets",
     "bugs": "",
     "maintainers": [{
             "name": "ed smith",
