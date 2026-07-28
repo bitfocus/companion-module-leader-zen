@@ -6,7 +6,7 @@ See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 The module allows Companion users to:
 
 - Load user presets on Leader ZEN devices from Companion
-- Provide button feedback when a preset has been successfully loaded
+- Provide button feedback when a preset has been loaded
 - Expose the last loaded preset as a Companion variable
 
 ## Configuration
