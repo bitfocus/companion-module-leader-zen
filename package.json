@@ -16,7 +16,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/leader-europe/companion-module-leader-zen"
+        "url": "https://github.com/bitfocus/companion-module-leader-zen"
     },
     "engines": {
         "node": "^22.20",
