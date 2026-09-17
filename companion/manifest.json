@@ -2,11 +2,11 @@
     "id": "leader-zen",
     "name": "leader-zen",
     "shortname": "zen",
-    "description": "leader-zen-presets",
+    "description": "Leader ZEN series Preset recall module",
     "version": "1.0.0",
     "license": "MIT",
     "repository": "https://github.com/bitfocus/companion-module-leader-zen",
-    "bugs": "",
+    "bugs": "https://github.com/bitfocus/companion-module-leader-zen/issues",
     "maintainers": [{
             "name": "ed smith",
             "github": "https://github.com/leader-europe"
@@ -20,6 +20,6 @@
         "entrypoint": "../dist/index.js"
     },
     "manufacturer": "Leader",
-    "products": ["LV5600","LV7600","LV5600W","LV7600W","LV5350","LV7300","LV5300"],
-    "keywords": ["Leader","Phabrix","LeaderPhabrix","Waveform","Monitor","ZEN", "LV5600","LV7600","LV5600W","LV7600W","LV5350","LV7300","LV5300"]
+    "products": ["LV5600","LV7600","LV5600W","LV7600W","LV5350","LV7300","LV5300A"],
+    "keywords": ["Waveform","Monitor","ZEN","Rasterizer"]
 }
