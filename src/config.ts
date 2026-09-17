@@ -1,17 +1,17 @@
 // Company: Leader Electronics of Europe 2026
 // License: MIT
 // Created by: Ed Smith 
-// Date: 13/05/2026
+// Date: 07/09/2026
 // Load user presets on Leader ZEN waveform monitor using companion/ streamdeck buttons. 
 // Requires Telnet to be enabled on Leader ZEN device and to be connected to same network as Companion
-// 60 user preset buttons are automatically generated when module has connected 
+// 60 user preset buttons are automatically genereated when module has connected 
 
 import { type SomeCompanionConfigField } from '@companion-module/base'
 
 export interface ModuleConfig {
       host: string
       port: number
-      username: string
+      model: string
       sendOnConnectDelayMs?: number
     }
 
@@ -21,13 +21,12 @@ export function getConfigFields(): SomeCompanionConfigField[] {
             type: 'textinput',
             id: 'host',
             label: 'IP Address/ Host',
-            width: 6,
-            default: '',
-            regex: '/^.+$/',
+            width: 12,
+            default: '127.0.0.1',
           },
           {
             type: 'dropdown',
-            id: 'username',
+            id: 'model',
             label: 'Select ZEN Model',
             choices: [
                 { id: 'LV5300A', label: 'LV5300A' },
