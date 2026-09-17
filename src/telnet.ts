@@ -140,7 +140,7 @@ export function initConnection(
         // ---------------------------------------
         // LOGIN HANDLING
         // ---------------------------------------
-        // Username and Password are
+
         if (!instance.login) {
             if (text.includes('login:')) {
                 instance.socket?.send(
