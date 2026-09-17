@@ -105,8 +105,8 @@ export function initConnection(
         // PRESET LOAD CONFIRMATION
         // ---------------------------------------
         // NOTE: Preset may not have loaded on device. 
-        // There is no way to ascertain if the user preset has actually loaded from the API
-        // this cheks that the RCLL telnet command has been received for the preset ID 
+        // There is no way to ascertain if the user preset has actually loaded from the API.
+        // This checks that the RCLL telnet command has been received for the preset ID 
         // assuming preset has loaded
         
         if (instance.lastPresetId && text.includes('RCLL ' + instance.lastPresetId)) {
