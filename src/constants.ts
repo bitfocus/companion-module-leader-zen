@@ -8,7 +8,7 @@
 
 // CREATE 60 PREDEFINED USER PRESETS FOR ZEN
 export const USER_PRESETS = 
-    new Array(65)
+    new Array(60)
         .fill(null)
         .map((_, i) => ({
             id: `${i + 1}`, 
