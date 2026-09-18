@@ -29,9 +29,12 @@ export class LVPresetModule extends InstanceBase<ModuleConfig> {
       public config!: ModuleConfig
       public socket: TelnetHelper | undefined
       public login = false
-      public lastData = "-1"
+      // public lastData = "-1"
       public lastPresetId = ''
       public clearSendTimer: NodeJS.Timeout | undefined
+      public presetLoadTimer: NodeJS.Timeout | undefined
+      public presetLoadPending = false
+      public presetAckTimer: NodeJS.Timeout | undefined
       
       // CREATE 60 PREDEFINED USER PRESETS FOR ZEN
       

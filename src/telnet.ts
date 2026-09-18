@@ -57,6 +57,12 @@ export function initConnection(
         )
 
         instance.login = false
+        instance.presetLoadPending = false
+
+        if (instance.presetLoadTimer) {
+            clearTimeout(instance.presetLoadTimer)
+            instance.presetLoadTimer = undefined
+        }
 
         instance.log(
             'error',
@@ -100,6 +106,23 @@ export function initConnection(
         )
 
         instance.log('debug', `Received: ${text}`)
+        
+        if (text.includes('!! ERROR !!')) {
+            instance.log('error', text)
+
+            if (instance.presetAckTimer) {
+                clearTimeout(instance.presetAckTimer)
+                instance.presetAckTimer = undefined
+            }
+            instance.presetLoadPending = false
+
+            if (instance.presetLoadTimer) {
+                clearTimeout(instance.presetLoadTimer)
+                instance.presetLoadTimer = undefined
+            }
+
+            return
+        }
 
         // ---------------------------------------
         // PRESET LOAD CONFIRMATION
@@ -110,17 +133,43 @@ export function initConnection(
         // assuming preset has loaded
         
         if (instance.lastPresetId && text.includes('RCLL ' + instance.lastPresetId)) {
-            instance.log(
-                'info',
-                `Preset ${instance.lastPresetId} acknowledged`
-            )
+            
+            if (instance.presetAckTimer) {
+                clearTimeout(instance.presetAckTimer)
+            }
 
-            instance.checkFeedbacks('preset_success')
+            instance.presetAckTimer = setTimeout(() => {
+                instance.log(
+                    'info',
+                    `Preset ${instance.lastPresetId} acknowledged`
+                )
 
+                instance.checkFeedbacks('preset_success')
+
+                instance.setVariableValues({
+                    last_loaded_preset: instance.lastPresetId,
+                })
+
+                instance.presetAckTimer = undefined
+            }, 200)
+            
+            
             instance.setVariableValues({
                 last_loaded_preset: instance.lastPresetId,
             })
+            
+            instance.presetLoadPending = false
+            
+            if (instance.presetLoadTimer) {
+                clearTimeout(instance.presetLoadTimer)
+                instance.presetLoadTimer = undefined
+            }
+
+            
+
+            
         }
+        
 
         // ---------------------------------------
         // LOGIN FAILED
@@ -215,23 +264,48 @@ export function safeSend(
         `payload: ${payload}\r`
     )
 
-    instance.lastData = payload
+    // instance.lastData = payload
 
-    // only load preset once. If button pressed multiple times ignore sending command again
-    if (instance.lastData !== 'RCLL ' + instance.lastPresetId){
-        if (instance.clearSendTimer) {
-            clearTimeout(instance.clearSendTimer)
-        }
-    
-        instance.clearSendTimer = setTimeout(() => {
-            instance.socket?.send(payload + '\r\n')
-        }, instance.config.sendOnConnectDelayMs)
-    }
-    
-    // Capture preset number for feedback tracking
+    // Prevent multiple preset load commands while
+    // waiting for acknowledgement from the device
     if (payload.startsWith('RCLL ')) {
-        instance.lastPresetId = payload.substring(5).trim()
+        const presetId = payload.substring(5).trim()
+
+        if (instance.presetLoadPending && presetId === instance.lastPresetId) {
+            instance.log(
+                'debug',
+                `Ignoring preset load ${presetId}, previous load still pending`
+            )
+            return
+        }
+
+        instance.lastPresetId = presetId
+        instance.presetLoadPending = true
+        
+        if (instance.presetLoadTimer) {
+            clearTimeout(instance.presetLoadTimer)
+        }
+
+        instance.presetLoadTimer = setTimeout(() => {
+            instance.log(
+                'warn',
+                `Preset ${presetId} acknowledgement timeout`
+            )
+
+            instance.presetLoadPending = false
+            instance.presetLoadTimer = undefined
+        }, 5000) // 5 seconds
+
     }
+
+    if (instance.clearSendTimer) {
+        clearTimeout(instance.clearSendTimer)
+    }
+
+    instance.clearSendTimer = setTimeout(() => {
+        instance.socket?.send(payload + '\r\n')
+    }, instance.config.sendOnConnectDelayMs)
+
 
 }
 
@@ -241,8 +315,14 @@ export function safeSend(
 export function disconnect(
     instance: LVPresetModule
 ): void {
+
     if (instance.clearSendTimer) {
         clearTimeout(instance.clearSendTimer)
+    }
+    
+    if (instance.presetLoadTimer) {
+        clearTimeout(instance.presetLoadTimer)
+        instance.presetLoadTimer = undefined
     }
     
     if (instance.socket) {
@@ -251,5 +331,7 @@ export function disconnect(
     }
 
     instance.login = false
+    instance.presetLoadPending = false
+    
     instance.log('info', 'Telnet connection closed')
 }
