@@ -31,6 +31,7 @@ export class LVPresetModule extends InstanceBase<ModuleConfig> {
       public login = false
       public lastData = "-1"
       public lastPresetId = ''
+      public clearSendTimer: NodeJS.Timeout | undefined
       
       // CREATE 60 PREDEFINED USER PRESETS FOR ZEN
       

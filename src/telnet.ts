@@ -196,6 +196,7 @@ export function safeSend(
     instance: LVPresetModule,
     payload: string
 ): void {
+
     if (!instance.socket) {
         instance.log('warn', 'Not connected')
 
@@ -217,8 +218,12 @@ export function safeSend(
     instance.lastData = payload
 
     // only load preset once. If button pressed multiple times ignore sending command again
-    if (instance.lastData != 'RCLL ' + instance.lastPresetId){
-        setTimeout(() => {
+    if (instance.lastData !== 'RCLL ' + instance.lastPresetId){
+        if (instance.clearSendTimer) {
+            clearTimeout(instance.clearSendTimer)
+        }
+    
+        instance.clearSendTimer = setTimeout(() => {
             instance.socket?.send(payload + '\r\n')
         }, instance.config.sendOnConnectDelayMs)
     }
@@ -236,6 +241,10 @@ export function safeSend(
 export function disconnect(
     instance: LVPresetModule
 ): void {
+    if (instance.clearSendTimer) {
+        clearTimeout(instance.clearSendTimer)
+    }
+    
     if (instance.socket) {
         instance.socket.destroy()
         instance.socket = undefined
