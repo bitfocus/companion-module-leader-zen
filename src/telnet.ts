@@ -56,24 +56,13 @@ export function initConnection(
             err?.message ?? 'Socket error'
         )
 
-        instance.login = false
-        instance.presetLoadPending = false
-
-        if (instance.presetLoadTimer) {
-            clearTimeout(instance.presetLoadTimer)
-            instance.presetLoadTimer = undefined
-        }
-
         instance.log(
             'error',
             `Socket error: ${err?.message ?? 'Unknown error'}`
         )
         
-        // Stop and destroy socket something bad has happened
-        if (instance.socket) {
-            instance.socket.destroy()
-            instance.socket = undefined
-        }
+        disconnect(instance);
+        
     })
 
     // ---------------------------------------
@@ -264,8 +253,6 @@ export function safeSend(
         `payload: ${payload}\r`
     )
 
-    // instance.lastData = payload
-
     // Prevent multiple preset load commands while
     // waiting for acknowledgement from the device
     if (payload.startsWith('RCLL ')) {
@@ -323,6 +310,10 @@ export function disconnect(
     if (instance.presetLoadTimer) {
         clearTimeout(instance.presetLoadTimer)
         instance.presetLoadTimer = undefined
+    }
+    
+    if (instance.presetAckTimer) {
+        clearTimeout(instance.presetAckTimer)
     }
     
     if (instance.socket) {
