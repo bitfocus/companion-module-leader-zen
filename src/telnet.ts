@@ -61,7 +61,7 @@ export function initConnection(
             `Socket error: ${err?.message ?? 'Unknown error'}`
         )
         
-        disconnect(instance);
+        // disconnect(instance);
         
     })
 
