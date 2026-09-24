@@ -22,8 +22,7 @@ export function initConnection(
 ): void {
     // Destroy existing socket first
     if (instance.socket) {
-        instance.socket.destroy()
-        instance.socket = undefined
+        disconnect(instance)
     }
 
     const { host, port } = instance.config
@@ -159,7 +158,7 @@ export function initConnection(
         // LOGIN FAILED
         // ---------------------------------------
 
-        if (text.includes('Login incorrect') || text.includes(`:/$`)) {
+        if (text.includes('Login incorrect') || text.includes(':/$')) {
             instance.login = false
 
             instance.updateStatus(
