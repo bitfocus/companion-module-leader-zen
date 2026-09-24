@@ -12,6 +12,7 @@ import {
 } from '@companion-module/base'
 
 import type { LVPresetModule } from './main.js'
+import { USER_PRESETS } from './constants.js'
 
 // ---------------------------------------
 // Initialise Telnet connection
@@ -59,8 +60,8 @@ export function initConnection(
             'error',
             `Socket error: ${err?.message ?? 'Unknown error'}`
         )
-        
-        
+        // stop and clean up
+        disconnect(instance)
     })
 
     // ---------------------------------------
@@ -72,7 +73,7 @@ export function initConnection(
 
         instance.updateStatus(
             InstanceStatus.Connecting,
-            'Connecting...'
+            `Connecting to ${host}:${port}`
         )
 
         instance.log(
@@ -140,11 +141,6 @@ export function initConnection(
                 instance.presetAckTimer = undefined
             }, 200)
             
-            
-            instance.setVariableValues({
-                last_loaded_preset: instance.lastPresetId,
-            })
-            
             instance.presetLoadPending = false
             
             if (instance.presetLoadTimer) {
@@ -177,22 +173,22 @@ export function initConnection(
 
         if (!instance.login) {
             // Special login case for LV5300A
-            if (instance.config.model==="LV5300A") { instance.config.model = "LV5300" }
+            const login = instance.config.model === 'LV5300A' ? 'LV5300' : instance.config.model
 
             if (text.includes('login:')) {
                 instance.socket?.send(
-                    instance.config.model + '\r\n'
+                    login + '\r\n'
                 )
             }
 
             if (text.includes('Password:')) {
                 instance.socket?.send(
-                    instance.config.model + '\r\n'
+                    login + '\r\n'
                 )
             }
 
             if (text.includes(
-                    `${instance.config.model}:~$`
+                    `${login}:~$`
                 )
             ) {
                 instance.login = true
@@ -255,6 +251,19 @@ export function safeSend(
     // waiting for acknowledgement from the device
     if (payload.startsWith('RCLL ')) {
         const presetId = payload.substring(5).trim()
+        
+        const validPreset = USER_PRESETS.some(
+            (p) => p.id === presetId
+        )
+             
+        if (!validPreset) {
+            instance.log(
+                'warn',
+                `Ignoring invalid preset ${presetId}`
+            )
+             
+            return
+        }
 
         if (instance.presetLoadPending && presetId === instance.lastPresetId) {
             instance.log(
@@ -276,8 +285,8 @@ export function safeSend(
                 'warn',
                 `Preset ${presetId} acknowledgement timeout`
             )
-
             instance.presetLoadPending = false
+            instance.checkFeedbacks('preset_success')
             instance.presetLoadTimer = undefined
         }, 5000) // 5 seconds
 
@@ -303,6 +312,7 @@ export function disconnect(
 
     if (instance.clearSendTimer) {
         clearTimeout(instance.clearSendTimer)
+        instance.clearSendTimer = undefined
     }
     
     if (instance.presetLoadTimer) {
@@ -312,6 +322,7 @@ export function disconnect(
     
     if (instance.presetAckTimer) {
         clearTimeout(instance.presetAckTimer)
+        instance.presetAckTimer = undefined
     }
     
     if (instance.socket) {
