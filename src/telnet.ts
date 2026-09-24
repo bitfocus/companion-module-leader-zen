@@ -61,7 +61,6 @@ export function initConnection(
             `Socket error: ${err?.message ?? 'Unknown error'}`
         )
         
-        // disconnect(instance);
         
     })
 
@@ -153,10 +152,6 @@ export function initConnection(
                 clearTimeout(instance.presetLoadTimer)
                 instance.presetLoadTimer = undefined
             }
-
-            
-
-            
         }
         
 
@@ -172,6 +167,19 @@ export function initConnection(
                 'Login incorrect'
             )
             instance.log('error', 'Login incorrect')
+            disconnect(instance)
+            return
+        }
+        
+        if (text.includes(`:/$`)) {
+            instance.login = false
+
+            instance.updateStatus(
+                InstanceStatus.UnknownError,
+                'Login incorrect'
+            )
+            instance.log('error', 'Login incorrect')
+            disconnect(instance)
             return
         }
 
@@ -180,6 +188,9 @@ export function initConnection(
         // ---------------------------------------
 
         if (!instance.login) {
+            // Special login case for LV5300A
+            if (instance.config.model==="LV5300A") { instance.config.model = "LV5300" }
+
             if (text.includes('login:')) {
                 instance.socket?.send(
                     instance.config.model + '\r\n'
@@ -192,8 +203,7 @@ export function initConnection(
                 )
             }
 
-            if (
-                text.includes(
+            if (text.includes(
                     `${instance.config.model}:~$`
                 )
             ) {
@@ -204,7 +214,7 @@ export function initConnection(
                     'Logged In'
                 )
                 instance.log('info', 'Login successful')
-            }
+            } 
         }
     })
 
