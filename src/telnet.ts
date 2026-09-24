@@ -159,7 +159,7 @@ export function initConnection(
         // LOGIN FAILED
         // ---------------------------------------
 
-        if (text.includes('Login incorrect')) {
+        if (text.includes('Login incorrect') || text.includes(`:/$`)) {
             instance.login = false
 
             instance.updateStatus(
@@ -171,17 +171,6 @@ export function initConnection(
             return
         }
         
-        if (text.includes(`:/$`)) {
-            instance.login = false
-
-            instance.updateStatus(
-                InstanceStatus.UnknownError,
-                'Login incorrect'
-            )
-            instance.log('error', 'Login incorrect')
-            disconnect(instance)
-            return
-        }
 
         // ---------------------------------------
         // LOGIN HANDLING
