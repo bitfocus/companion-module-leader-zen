@@ -24,7 +24,6 @@ export function getFeedbacks(
             name: 'Preset Selected',
             description:
                 'Turns user preset button green when selected',
-
             defaultStyle: {
                 bgcolor: combineRgb(0, 200, 0),
                 color: combineRgb(0, 0, 0),

@@ -73,12 +73,12 @@ export function initConnection(
 
         instance.updateStatus(
             InstanceStatus.Connecting,
-            `Connecting to ${host}:${port}`
+            `Connecting to ${instance.config.model} - ${host}:${port}`
         )
 
         instance.log(
             'info',
-            `Connecting to ${host}:${port}`
+            `Connecting to ${instance.config.model} - ${host}:${port}`
         )
     })
 
