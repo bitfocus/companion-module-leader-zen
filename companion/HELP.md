@@ -7,6 +7,8 @@
 
 NOTE: Button feedback only indicates that the button has been pressed and the command sent to the unit. It does not actually confirm if the preset has been loaded - there is no API call to check.
 
+NOTE: If a telnet connection error occurs the module will stop and disconnect the current session/ socket. The user will then need to restart the module after fixing the telnet connection error.
+
 Compatible with:
 - LV5300A (LV5300)
 - LV5350
