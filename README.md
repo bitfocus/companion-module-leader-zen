@@ -9,7 +9,7 @@ The module allows Companion users to:
 - Provide button feedback when the preset recall command is sent
 - Expose the last loaded preset as a Companion variable
 
-NOTE: Presets may take a while to be recalled on the ZEN device once actioned from the button panel. User needs to save presets on the ZEN device into one of the available sixty preset slots. 
+NOTE: Presets may take a while to be recalled on the ZEN device once actioned from the button panel. User needs to save presets on the ZEN device into one of the available sixty preset slots before they can be recalled. 
 
 It is designed for, button-driven preset recall rather than deep device configuration.
 
