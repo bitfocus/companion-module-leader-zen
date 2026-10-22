@@ -60,8 +60,7 @@ export function initConnection(
             'error',
             `Socket error: ${err?.message ?? 'Unknown error'}`
         )
-        // stop and clean up
-        disconnect(instance)
+
     })
 
     // ---------------------------------------
