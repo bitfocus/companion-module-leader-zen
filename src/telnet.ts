@@ -1,15 +1,12 @@
 // Company: Leader Electronics of Europe
 // License: MIT
-// Created by: Ed Smith 
+// Created by: Ed Smith
 // Date: 14/10/2026
-// Load user presets on Leader ZEN waveform monitor using companion/ streamdeck buttons. 
+// Load user presets on Leader ZEN waveform monitor using companion/ streamdeck buttons.
 // Requires Telnet to be enabled on Leader ZEN device and to be connected to same network as Companion
-// 60 user preset buttons are automatically generated when module has connected 
+// 60 user preset buttons are automatically generated when module has connected
 
-import {
-    InstanceStatus,
-    TelnetHelper,
-} from '@companion-module/base'
+import { InstanceStatus, TelnetHelper } from '@companion-module/base'
 
 import type { LVPresetModule } from './main.js'
 import { USER_PRESETS } from './constants.js'
@@ -18,319 +15,271 @@ import { USER_PRESETS } from './constants.js'
 // Initialise Telnet connection
 // ---------------------------------------
 
-export function initConnection(
-    instance: LVPresetModule
-): void {
-    // Destroy existing socket first
-    if (instance.socket) {
-        disconnect(instance)
-    }
+export function initConnection(instance: LVPresetModule): void {
+	// Destroy existing socket first
+	if (instance.socket) {
+		disconnect(instance)
+	}
 
-    const { host, port } = instance.config
+	const { host, port } = instance.config
 
-    if (!host || !port) {
-        instance.updateStatus(
-            InstanceStatus.BadConfig,
-            'Host/port not set'
-        )
-        return
-    }
+	if (!host || !port) {
+		instance.updateStatus(InstanceStatus.BadConfig, 'Host/port not set')
+		return
+	}
 
-    instance.socket = new TelnetHelper(host, port)
+	instance.socket = new TelnetHelper(host, port)
 
-    // ---------------------------------------
-    // SOCKET STATUS
-    // ---------------------------------------
+	// ---------------------------------------
+	// SOCKET STATUS
+	// ---------------------------------------
 
-    instance.socket.on('status_change', (status, message) => {
-        instance.updateStatus(status, message)
-    })
+	instance.socket.on('status_change', (status, message) => {
+		instance.updateStatus(status, message)
+	})
 
-    // ---------------------------------------
-    // SOCKET ERROR
-    // ---------------------------------------
+	// ---------------------------------------
+	// SOCKET ERROR
+	// ---------------------------------------
 
-    instance.socket.on('error', (err) => {
-        instance.updateStatus(
-            InstanceStatus.UnknownError,
-            err?.message ?? 'Socket error'
-        )
+	instance.socket.on('error', (err) => {
+		instance.updateStatus(InstanceStatus.UnknownError, err?.message ?? 'Socket error')
 
-        instance.log(
-            'error',
-            `Socket error: ${err?.message ?? 'Unknown error'}`
-        )
+		instance.log('error', `Socket error: ${err?.message ?? 'Unknown error'}`)
+	})
 
-    })
+	// ---------------------------------------
+	// SOCKET CONNECT
+	// ---------------------------------------
 
-    // ---------------------------------------
-    // SOCKET CONNECT
-    // ---------------------------------------
+	instance.socket.on('connect', () => {
+		instance.login = false
 
-    instance.socket.on('connect', () => {
-        instance.login = false
+		instance.updateStatus(InstanceStatus.Connecting, `Connecting to ${instance.config.model} - ${host}:${port}`)
 
-        instance.updateStatus(
-            InstanceStatus.Connecting,
-            `Connecting to ${instance.config.model} - ${host}:${port}`
-        )
+		instance.log('info', `Connecting to ${instance.config.model} - ${host}:${port}`)
+	})
 
-        instance.log(
-            'info',
-            `Connecting to ${instance.config.model} - ${host}:${port}`
-        )
-    })
+	// ---------------------------------------
+	// SOCKET DATA
+	// ---------------------------------------
 
-    // ---------------------------------------
-    // SOCKET DATA
-    // ---------------------------------------
+	instance.socket.on('data', (buffer) => {
+		const data = buffer.toString()
+		const text = data.replace(/\x1b\[[0-9;]*m/g, '')
 
-    instance.socket.on('data', (buffer) => {
-        const data = buffer.toString()
-        const text = data.replace(
-            /\x1b\[[0-9;]*m/g,
-            ''
-        )
+		instance.log('debug', `Received: ${text}`)
 
-        instance.log('debug', `Received: ${text}`)
-        
-        if (text.includes('!! ERROR !!')) {
-            instance.log('error', text)
+		if (text.includes('!! ERROR !!')) {
+			instance.log('error', text)
+			instance.lastPresetId = ''
 
-            if (instance.presetAckTimer) {
-                clearTimeout(instance.presetAckTimer)
-                instance.presetAckTimer = undefined
-            }
-            instance.presetLoadPending = false
+			if (instance.presetAckTimer) {
+				clearTimeout(instance.presetAckTimer)
+				instance.presetAckTimer = undefined
+			}
+			instance.presetLoadPending = false
 
-            if (instance.presetLoadTimer) {
-                clearTimeout(instance.presetLoadTimer)
-                instance.presetLoadTimer = undefined
-            }
+			if (instance.presetLoadTimer) {
+				clearTimeout(instance.presetLoadTimer)
+				instance.presetLoadTimer = undefined
+			}
 
-            return
-        }
+			return
+		}
 
-        // ---------------------------------------
-        // PRESET LOAD CONFIRMATION
-        // ---------------------------------------
-        // NOTE: Preset may not have loaded on device. 
-        // There is no way to ascertain if the user preset has actually loaded from the API.
-        // This checks that the RCLL telnet command has been received for the preset ID 
-        // assuming preset has loaded
-        
-        if (instance.lastPresetId && text.includes('RCLL ' + instance.lastPresetId)) {
-            
-            if (instance.presetAckTimer) {
-                clearTimeout(instance.presetAckTimer)
-            }
+		// ---------------------------------------
+		// PRESET LOAD CONFIRMATION
+		// ---------------------------------------
+		// NOTE: Preset may not have loaded on device.
+		// There is no way to ascertain if the user preset has actually loaded from the API.
+		// This checks that the RCLL telnet command has been received for the preset ID
+		// assuming preset has loaded
 
-            instance.presetAckTimer = setTimeout(() => {
-                instance.log(
-                    'info',
-                    `Preset ${instance.lastPresetId} acknowledged`
-                )
+		if (instance.lastPresetId && text.includes('RCLL ' + instance.lastPresetId)) {
+			if (instance.presetAckTimer) {
+				clearTimeout(instance.presetAckTimer)
+			}
 
-                instance.checkFeedbacks('preset_success')
+			instance.presetAckTimer = setTimeout(() => {
+				instance.log('info', `Preset ${instance.lastPresetId} acknowledged`)
 
-                instance.setVariableValues({
-                    last_loaded_preset: instance.lastPresetId,
-                })
+				instance.checkFeedbacks('preset_success')
 
-                instance.presetAckTimer = undefined
-            }, 200)
-            
-            instance.presetLoadPending = false
-            
-            if (instance.presetLoadTimer) {
-                clearTimeout(instance.presetLoadTimer)
-                instance.presetLoadTimer = undefined
-            }
-        }
-        
+				instance.setVariableValues({
+					last_loaded_preset: instance.lastPresetId,
+				})
 
-        // ---------------------------------------
-        // LOGIN FAILED
-        // ---------------------------------------
+				instance.presetAckTimer = undefined
+			}, 200)
 
-        if (text.includes('Login incorrect') || text.includes(':/$')) {
-            instance.login = false
+			instance.presetLoadPending = false
 
-            instance.updateStatus(
-                InstanceStatus.UnknownError,
-                'Login incorrect'
-            )
-            instance.log('error', 'Login incorrect')
-            disconnect(instance)
-            return
-        }
-        
+			if (instance.presetLoadTimer) {
+				clearTimeout(instance.presetLoadTimer)
+				instance.presetLoadTimer = undefined
+			}
+		}
 
-        // ---------------------------------------
-        // LOGIN HANDLING
-        // ---------------------------------------
+		// ---------------------------------------
+		// LOGIN FAILED
+		// ---------------------------------------
 
-        if (!instance.login) {
-            // Special login case for LV5300A
-            const login = instance.config.model === 'LV5300A' ? 'LV5300' : instance.config.model
+		if (text.includes('Login incorrect') || text.includes(':/$')) {
+			instance.login = false
 
-            if (text.includes('login:')) {
-                instance.socket?.send(
-                    login + '\r\n'
-                )
-            }
+			instance.updateStatus(InstanceStatus.UnknownError, 'Login incorrect')
+			instance.log('error', 'Login incorrect')
+			disconnect(instance)
+			return
+		}
 
-            if (text.includes('Password:')) {
-                instance.socket?.send(
-                    login + '\r\n'
-                )
-            }
+		// ---------------------------------------
+		// LOGIN HANDLING
+		// ---------------------------------------
 
-            if (text.includes(
-                    `${login}:~$`
-                )
-            ) {
-                instance.login = true
+		if (!instance.login) {
+			// Special login case for LV5300A
+			const login = instance.config.model === 'LV5300A' ? 'LV5300' : instance.config.model
 
-                instance.updateStatus(
-                    InstanceStatus.Ok,
-                    'Logged In'
-                )
-                instance.log('info', 'Login successful')
-            } 
-        }
-    })
+			if (text.includes('login:')) {
+				void sendTelnet(instance, login + '\r\n')
+			}
 
-    // ---------------------------------------
-    // TELNET NEGOTIATION
-    // ---------------------------------------
+			if (text.includes('Password:')) {
+				void sendTelnet(instance, login + '\r\n')
+			}
 
-    instance.socket.on('iac', (type, info) => {
-        if (type === 'DO') {
-            instance.socket?.send(
-                Buffer.from([255, 252, info])
-            )
-        }
+			if (text.includes(`${login}:~$`)) {
+				instance.login = true
 
-        if (type === 'WILL') {
-            instance.socket?.send(
-                Buffer.from([255, 254, info])
-            )
-        }
-    })
+				instance.updateStatus(InstanceStatus.Ok, 'Logged In')
+				instance.log('info', 'Login successful')
+			}
+		}
+	})
+
+	// ---------------------------------------
+	// TELNET NEGOTIATION
+	// ---------------------------------------
+
+	instance.socket.on('iac', (type, info) => {
+		if (type === 'DO') {
+			void sendTelnet(instance, Buffer.from([255, 252, info]))
+		}
+
+		if (type === 'WILL') {
+			void sendTelnet(instance, Buffer.from([255, 254, info]))
+		}
+	})
 }
 
 // ---------------------------------------
 // Send command to the ZEN device
 // ---------------------------------------
-export function safeSend(
-    instance: LVPresetModule,
-    payload: string
-): void {
+export function safeSend(instance: LVPresetModule, payload: string): void {
+	if (!instance.socket) {
+		instance.log('warn', 'Not connected')
+		instance.updateStatus(InstanceStatus.ConnectionFailure, 'Socket not available')
+		instance.login = false
+		return
+	}
 
-    if (!instance.socket) {
-        instance.log('warn', 'Not connected')
+	if (!instance.socket?.isConnected) {
+		instance.log('warn', 'Socket not connected')
+		return
+	}
 
-        instance.updateStatus(
-            InstanceStatus.ConnectionFailure,
-            'Socket not available'
-        )
+	if (!instance.login) {
+		instance.log('warn', `Ignoring command before login: ${payload}`)
+		return
+	}
 
-        instance.login = false
+	instance.log('debug', `payload: ${payload}\r`)
 
-        return
-    }
+	// Prevent multiple preset load commands while
+	// waiting for acknowledgement from the device
+	if (payload.startsWith('RCLL ')) {
+		const presetId = payload.substring(5).trim()
 
-    instance.log(
-        'debug',
-        `payload: ${payload}\r`
-    )
+		const validPreset = USER_PRESETS.some((p) => p.id === presetId)
+		if (!validPreset) {
+			instance.log('warn', `Ignoring invalid preset ${presetId}`)
+			return
+		}
 
-    // Prevent multiple preset load commands while
-    // waiting for acknowledgement from the device
-    if (payload.startsWith('RCLL ')) {
-        const presetId = payload.substring(5).trim()
-        
-        const validPreset = USER_PRESETS.some(
-            (p) => p.id === presetId
-        )
-             
-        if (!validPreset) {
-            instance.log(
-                'warn',
-                `Ignoring invalid preset ${presetId}`
-            )
-             
-            return
-        }
+		if (instance.presetLoadPending && presetId === instance.lastPresetId) {
+			instance.log('debug', `Ignoring preset load ${presetId}, previous load still pending`)
+			return
+		}
 
-        if (instance.presetLoadPending && presetId === instance.lastPresetId) {
-            instance.log(
-                'debug',
-                `Ignoring preset load ${presetId}, previous load still pending`
-            )
-            return
-        }
+		instance.lastPresetId = presetId
+		instance.presetLoadPending = true
 
-        instance.lastPresetId = presetId
-        instance.presetLoadPending = true
-        
-        if (instance.presetLoadTimer) {
-            clearTimeout(instance.presetLoadTimer)
-        }
+		if (instance.presetLoadTimer) {
+			clearTimeout(instance.presetLoadTimer)
+		}
 
-        instance.presetLoadTimer = setTimeout(() => {
-            instance.log(
-                'warn',
-                `Preset ${presetId} acknowledgement timeout`
-            )
-            instance.presetLoadPending = false
-            instance.checkFeedbacks('preset_success')
-            instance.presetLoadTimer = undefined
-        }, 5000) // 5 seconds
+		instance.presetLoadTimer = setTimeout(() => {
+			instance.log('warn', `Preset ${presetId} acknowledgement timeout`)
+			instance.lastPresetId = ''
+			instance.presetLoadPending = false
+			instance.presetLoadTimer = undefined
+		}, 5000) // 5 seconds
+	}
 
-    }
+	if (instance.clearSendTimer) {
+		clearTimeout(instance.clearSendTimer)
+	}
 
-    if (instance.clearSendTimer) {
-        clearTimeout(instance.clearSendTimer)
-    }
-
-    instance.clearSendTimer = setTimeout(() => {
-        instance.socket?.send(payload + '\r\n')
-    }, instance.config.sendOnConnectDelayMs)
-
-
+	instance.clearSendTimer = setTimeout(() => {
+		if (!instance.socket?.isConnected || !instance.login) {
+			return
+		}
+		void sendTelnet(instance, payload + '\r\n')
+	}, instance.config.sendOnConnectDelayMs)
 }
 
-/**
- * Cleanly close the telnet connection
- */
-export function disconnect(
-    instance: LVPresetModule
-): void {
+// Helper to await on send
+async function sendTelnet(instance: LVPresetModule, data: string | Buffer): Promise<void> {
+	try {
+		await instance.socket?.send(data)
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error)
 
-    if (instance.clearSendTimer) {
-        clearTimeout(instance.clearSendTimer)
-        instance.clearSendTimer = undefined
-    }
-    
-    if (instance.presetLoadTimer) {
-        clearTimeout(instance.presetLoadTimer)
-        instance.presetLoadTimer = undefined
-    }
-    
-    if (instance.presetAckTimer) {
-        clearTimeout(instance.presetAckTimer)
-        instance.presetAckTimer = undefined
-    }
-    
-    if (instance.socket) {
-        instance.socket.destroy()
-        instance.socket = undefined
-    }
+		instance.log('error', `Send failed: ${message}`)
+		instance.lastPresetId = ''
 
-    instance.login = false
-    instance.presetLoadPending = false
-    
-    instance.log('info', 'Telnet connection closed')
+		instance.updateStatus(InstanceStatus.ConnectionFailure, 'Telnet send failed')
+	}
+}
+
+
+// Cleanly close the telnet connection
+
+export function disconnect(instance: LVPresetModule): void {
+	if (instance.clearSendTimer) {
+		clearTimeout(instance.clearSendTimer)
+		instance.clearSendTimer = undefined
+	}
+
+	if (instance.presetLoadTimer) {
+		clearTimeout(instance.presetLoadTimer)
+		instance.presetLoadTimer = undefined
+	}
+
+	if (instance.presetAckTimer) {
+		clearTimeout(instance.presetAckTimer)
+		instance.presetAckTimer = undefined
+	}
+
+	if (instance.socket) {
+		instance.socket.destroy()
+		instance.socket = undefined
+	}
+
+	instance.login = false
+	instance.presetLoadPending = false
+
+	instance.log('info', 'Telnet connection closed')
 }
