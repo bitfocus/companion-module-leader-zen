@@ -55,9 +55,9 @@ export function initConnection(instance: LVPresetModule): void {
 	instance.socket.on('connect', () => {
 		instance.login = false
 
-		instance.updateStatus(InstanceStatus.Connecting, `Connecting to ${instance.config.model} - ${host}:${port}`)
+		instance.updateStatus(InstanceStatus.Connecting, `Connected to ${instance.config.model} - ${host}:${port}`)
 
-		instance.log('info', `Connecting to ${instance.config.model} - ${host}:${port}`)
+		instance.log('info', `Connected to ${instance.config.model} - ${host}:${port}`)
 	})
 
 	// ---------------------------------------
