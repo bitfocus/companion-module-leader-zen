@@ -1,25 +1,26 @@
 {
-    "id": "leader-zen",
-    "name": "leader-zen",
-    "shortname": "zen",
-    "description": "Leader ZEN series Preset recall module",
-    "version": "1.0.0",
-    "license": "MIT",
-    "repository": "https://github.com/bitfocus/companion-module-leader-zen",
-    "bugs": "https://github.com/bitfocus/companion-module-leader-zen/issues",
-    "maintainers": [{
-            "name": "ed smith",
-            "github": "https://github.com/leader-europe"
-        }
-    ],
-    "legacyIds": [],
-    "runtime": {
-        "type": "node22",
-        "api": "nodejs-ipc",
-        "apiVersion": "0.0.0",
-        "entrypoint": "../dist/index.js"
-    },
-    "manufacturer": "Leader",
-    "products": ["LV5600","LV7600","LV5600W","LV7600W","LV5350","LV7300","LV5300A"],
-    "keywords": ["Waveform","Monitor","ZEN","Rasterizer"]
+	"id": "leader-zen",
+	"name": "leader-zen",
+	"shortname": "zen",
+	"description": "Leader ZEN series Preset recall module",
+	"version": "1.0.1",
+	"license": "MIT",
+	"repository": "https://github.com/bitfocus/companion-module-leader-zen",
+	"bugs": "https://github.com/bitfocus/companion-module-leader-zen/issues",
+	"maintainers": [
+		{
+			"name": "ed smith",
+			"github": "https://github.com/leader-europe"
+		}
+	],
+	"legacyIds": [],
+	"runtime": {
+		"type": "node22",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "../dist/index.js"
+	},
+	"manufacturer": "Leader",
+	"products": ["LV5600", "LV7600", "LV5600W", "LV7600W", "LV5350", "LV7300", "LV5300A"],
+	"keywords": ["Waveform", "Monitor", "ZEN", "Rasterizer"]
 }
