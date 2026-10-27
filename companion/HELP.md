@@ -10,8 +10,6 @@ NOTE: Button feedback only indicates that the button has been pressed and the co
 
 NOTE: Presets may take a while to be recalled on the Zen device once actioned from the button panel. Preset names created on the Zen device will not appear in companion, but the button name can be manually changed in Companion if required.
 
-NOTE: If a telnet connection error occurs the module will stop and disconnect the current session/ socket. The user will then need to restart the module after fixing the telnet connection error.
-
 Compatible with:
 
 - LV5300A (LV5300)
