@@ -254,7 +254,6 @@ async function sendTelnet(instance: LVPresetModule, data: string | Buffer): Prom
 	}
 }
 
-
 // Cleanly close the telnet connection
 
 export function disconnect(instance: LVPresetModule): void {
